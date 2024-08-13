@@ -18,4 +18,8 @@ class FlutterDocScanner {
           "Currently, this feature is supported only on Android Platform,");
     }
   }
+
+  Future<bool> isSupported() {
+    return FlutterDocScannerPlatform.instance.isSupported();
+  }
 }

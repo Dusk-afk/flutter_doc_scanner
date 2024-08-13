@@ -15,16 +15,18 @@ public class SwiftFlutterDocScannerPlugin: NSObject, FlutterPlugin, VNDocumentCa
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    self.resultChannel = result
+    self.presentingController = VNDocumentCameraViewController()
     if call.method == "getScanDocuments" {
-            let presentedVC: UIViewController? = UIApplication.shared.keyWindow?.rootViewController
-            self.resultChannel = result
-            self.presentingController = VNDocumentCameraViewController()
-            self.presentingController!.delegate = self
-            presentedVC?.present(self.presentingController!, animated: true)
-           } else {
-            result(FlutterMethodNotImplemented)
-            return
-       }
+        let presentedVC: UIViewController? = UIApplication.shared.keyWindow?.rootViewController
+        self.presentingController!.delegate = self
+        presentedVC?.present(self.presentingController!, animated: true)
+    } else if call.method == "isSupported" {
+        self.resultChannel?(VNDocumentCameraViewController.isSupported)
+    } else {
+        result(FlutterMethodNotImplemented)
+        return
+    }
   }
 
 

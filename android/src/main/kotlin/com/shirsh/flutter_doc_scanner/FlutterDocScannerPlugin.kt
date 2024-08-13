@@ -49,6 +49,7 @@ class FlutterDocScannerPlugin : MethodCallHandler, ActivityResultListener,
 
 
     override fun onMethodCall(call: MethodCall, result: Result) {
+        println("Method call: ${call.method}");
         if (call.method == "getPlatformVersion") {
             result.success("Android ${android.os.Build.VERSION.RELEASE}")
         } else if (call.method == "getScanDocuments") {
@@ -57,6 +58,8 @@ class FlutterDocScannerPlugin : MethodCallHandler, ActivityResultListener,
         } else if (call.method == "getScanDocumentsUri") {
             resultChannel = result
             startDocumentScanUri()
+        } else if (call.method == "isSupported") {
+            result.success(true)
         } else {
             result.notImplemented()
         }
@@ -65,10 +68,9 @@ class FlutterDocScannerPlugin : MethodCallHandler, ActivityResultListener,
     private fun startDocumentScan() {
         val options = GmsDocumentScannerOptions.Builder()
             .setGalleryImportAllowed(true)
-            .setPageLimit(9)
+            .setPageLimit(1)
             .setResultFormats(
-                GmsDocumentScannerOptions.RESULT_FORMAT_JPEG,
-                GmsDocumentScannerOptions.RESULT_FORMAT_PDF
+                GmsDocumentScannerOptions.RESULT_FORMAT_JPEG
             )
             .setScannerMode(GmsDocumentScannerOptions.SCANNER_MODE_FULL)
             .build()
@@ -134,14 +136,10 @@ class FlutterDocScannerPlugin : MethodCallHandler, ActivityResultListener,
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
         if (requestCode == REQUEST_CODE_SCAN && resultCode == Activity.RESULT_OK) {
             val scanningResult = GmsDocumentScanningResult.fromActivityResultIntent(data)
-            scanningResult?.getPdf()?.let { pdf ->
-                val pdfUri = pdf.getUri()
-                val pageCount = pdf.getPageCount()
+            scanningResult?.getPages()?.let { pages ->
+                val imageUris = pages.map { it.getImageUri().getPath() }
                 resultChannel.success(
-                    mapOf(
-                        "pdfUri" to pdfUri.toString(),
-                        "pageCount" to pageCount,
-                    )
+                    imageUris
                 )
             }
         } else if (requestCode == REQUEST_CODE_SCAN_URI && resultCode == Activity.RESULT_OK) {
